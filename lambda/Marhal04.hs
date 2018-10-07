@@ -11,54 +11,83 @@ type Stack = [XML]
 
 -- Задача 1 -----------------------------------------
 skipSpace :: String -> String
-skipSpace = undefined
+skipSpace = dropWhile isSpace
 
 -- Задача 2 -----------------------------------------
 getAttribute :: String -> XML -> String
-getAttribute = undefined
+getAttribute _ (Text _) = ""
+getAttribute _ (Element _ [] _) = ""
+getAttribute attr (Element n (curA:restA) c)
+  | attr == fst curA = snd curA
+  | otherwise = getAttribute attr (Element n restA c)
 
 -- Задача 3 -----------------------------------------
 getChildren :: String -> XML -> [XML]
-getChildren = undefined
+getChildren _ (Text _) = []
+getChildren _ (Element _ _ []) = []
+getChildren name (Element _ _ xs) = [x | x <- xs, getName x == name] where
+  getName :: XML -> String
+  getName (Text _) = ""
+  getName (Element a _ _) = a
 
 -- Задача 4 -----------------------------------------
 getChild :: String -> XML -> XML
-getChild = undefined
+getChild name el
+  | length children > 0 = head $ children
+  | otherwise = Text "" where
+    children = getChildren name el
 
 -- Задача 5 -----------------------------------------
 addChild :: XML -> XML -> XML
--- Передумова: другий аргумент - завжди побудований конструктором Element
-addChild  = undefined
+addChild _ (Text _) = Text ""
+addChild x (Element n a xs) = (Element n a (xs ++ [x]))
 
 -- Задача 6 -----------------------------------------
 getValue :: XML -> XML
-getValue = undefined
+getValue a = Text (getString a) where
+  getString :: XML -> String
+  getString (Text t) = t
+  getString (Element _ _ xs) = foldl (++) "" [getString x | x <- xs]
 
 -- Задача 7 -----------------------------------------
 addText :: String -> Stack -> Stack
--- Передумова: Є по крайній мірі один елемент Element в стеку
-addText = undefined
+-- Передумова - є по крайній мірі один елемент Element в стеку
+addText s (st:sts) = (addChild (Text s) st):sts
 
 -- Задача 8 -----------------------------------------
 popAndAdd :: Stack -> Stack
 -- Передумова: Є по крайній мірі два елемента Elements в стеку
-popAndAdd = undefined
+popAndAdd (x:y:xs) = (addChild x y):xs
 
 -- Початковий елемент стеку
 sentinel :: XML
 sentinel = Element "" [] []
 
 -- Задача 9 -----------------------------------------
-parseAttributes :: String -> (Attributes, String)
--- Передумова: Рядок, що містить XML-атрибути, синтаксично вірний
-parseAttributes  = undefined
+split :: Char -> String -> [String]
+split _ "" = []
+split c s = firstWord : (split c rest)
+    where firstWord = takeWhile (/=c) s
+          rest = drop (length firstWord + 1) s
 
+replace :: String -> String
+replace ('\"':xs) = "" ++ replace xs
+replace (x:xs)       = x : replace xs
+replace ""           = ""
+
+parseAttributes :: String -> (Attributes, String)
+parseAttributes s = ([(head xxx, replace (last xxx)) | xxx <- splited2], rest)
+ where xs = split '>' s
+       ss = init xs
+       rest = last xs
+       splited1 = concat $ filter (/=[""]) [split ' ' x | x <- ss]
+       splited2 = [split '=' xl | xl <- splited1]
 -- Аналіз імені елемента/атрибута
 parseName :: String -> (Name, String)
 parseName []
   = error "Error: attempt to read empty name"
-parseName s@(c1 : _)
-  | isAlpha c1 = break (not . isNameChar) s
+parseName s@(c : cs)
+  | isAlpha c = break (not . isNameChar) s
   | otherwise = error ("parseName error: name " ++ show s ++
                       " must begin with a letter")
   where
@@ -66,12 +95,11 @@ parseName s@(c1 : _)
 
 -- Задача 10 -----------------------------------------
 parse :: String -> XML
--- Передумова: рядок, що містить XML-документ, синтаксично вірний
-parse s = parse' (skipSpace s) [sentinel]
+parse s
+  = parse' (skipSpace s) [sentinel]
 
 parse' :: String -> Stack -> XML
 parse' = undefined
-
 
 -----------------------------------------------------------------------
 -- Деякі корисні функції перетворення в рядок і виводу
