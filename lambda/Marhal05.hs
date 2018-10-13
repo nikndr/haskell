@@ -1,17 +1,18 @@
 {-# OPTIONS_GHC -Wall #-}
-module HWP05 where
+module Marhal05 where
 
 data AbstractInteger = Zero
                      | Succ AbstractInteger
                      | Pred AbstractInteger
-                     deriving (Eq)
+                     deriving (Eq, Show)
 
-instance Show AbstractInteger where
-  show ai
-       | int > 0 = "Succ " ++ show int
-       | int == 0 = "Zero"
-       | otherwise = "Pred " ++ show (negate int) where
-         int = aiToInteger ai
+
+-- instance Show AbstractInteger where
+--   show ai
+--        | int > 0 = "Succ " ++ show int
+--        | int == 0 = "Zero"
+--        | otherwise = "Pred " ++ show (negate int) where
+--          int = aiToInteger ai
 
 
 -- Задача 1 -----------------------------------------
@@ -56,6 +57,7 @@ timesAbs _ Zero = Zero
 
 timesAbs' :: AbstractInteger -> AbstractInteger -> AbstractInteger
 timesAbs' _ Zero = Zero
+timesAbs' Zero _ = Zero
 timesAbs' x (Succ y) = x + timesAbs' x y
 timesAbs' x (Pred y) = timesAbs' x y - x
 
@@ -72,10 +74,11 @@ instance Num AbstractInteger  where
       | i == 0 = Zero
       | i < 0 =  negate (fromInteger' (negate i))
       | otherwise = fromInteger' i where
+          fromInteger' :: Integer -> AbstractInteger
           fromInteger' 0 = Zero
           fromInteger' x = Succ (fromInteger' (x - 1))
   abs a
-      | a < Zero = negate (a)
+      | a < Zero = negate a
       | otherwise = a
   signum s
       | s < Zero = -1
@@ -88,6 +91,7 @@ factorial :: (Eq a, Num a) => a -> a
 factorial x = go x 1 where
     go 0 res = res
     go n res = go (n - 1) (res * n)
+
 
 -- Задача  7 -----------------------------------------
 data Quaternion = Quaternion Double Double Double Double deriving (Eq)
