@@ -54,7 +54,7 @@ getValue name state = (M.!) (M.union (getLocals state) (getGlobals state)) (name
 
 -- Задача 2 -----------------------------------------
 getLocals :: StateP -> Binding
-getLocals = head . fst
+getLocals st = foldl M.union (M.fromList []) $ fst st
 
 getGlobals :: StateP -> Binding
 getGlobals = snd
@@ -126,7 +126,7 @@ executeStatement (While p b) dfx dpx st             = if eval p dfx st == I 0
 executeStatement (Call resId pid es) dfx dpx st = if null resId
                                                      then (fst st, snd stProc)
                                                      else updateVar (resId, getValue "$res" stProc) (fst st, snd stProc) where
-  (as, bl) = lookUp pid dpx 
+  (as, bl) = lookUp pid dpx
   vs = evalArgs es dfx st
   initv (Arr idv) = idv
   initv (Int idv) = idv
